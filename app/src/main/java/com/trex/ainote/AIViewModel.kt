@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 class AIViewModel(application: Application) : AndroidViewModel(application) {
     private val tfLiteHelper = TensorFlowLiteHelper(application)
     private val noteEmbeddings = mutableListOf<FloatArray>()
+    private val notes = mutableListOf<String>()
 
     fun trainModel(note: String) {
         val embedding = tfLiteHelper.generateEmbedding(note)
@@ -20,5 +21,10 @@ class AIViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             "No relevant match found."
         }
+    }
+
+    fun addNote(noteText: String) {
+        notes.add(noteText)
+        trainModel(noteText) // Train the model with the new note
     }
 }

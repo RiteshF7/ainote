@@ -1,78 +1,72 @@
 package com.trex.ainote
 
+import android.annotation.SuppressLint
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var aiViewModel: AIViewModel
+    private lateinit var noteEditText: EditText
+    private lateinit var addNoteButton: Button
+    private lateinit var notesTextView: TextView
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main) // Assuming you have activity_main.xml
 
         val factory = AIViewModelFactory(application)
-        aiViewModel = ViewModelProvider(this, factory).get(AIViewModel::class.java)
+        aiViewModel = ViewModelProvider(this, factory)[AIViewModel::class.java]
 
-        setContent {
-            AIAppScreen(viewModel = aiViewModel)
+        noteEditText = findViewById(R.id.noteEditText)
+        addNoteButton = findViewById(R.id.addNoteButton)
+        notesTextView = findViewById(R.id.notesTextView)
 
+        aiViewModel.notes.observe(this) { notes ->
+            notesTextView.text = "Notes:\n" + notes.joinToString("\n")
+        }
+
+        addNoteButton.setOnClickListener {
+            val noteText = noteEditText.text.toString()
+            if (noteText.isNotBlank()) {
+                aiViewModel.addNote(noteText)
+                noteEditText.text.clear()
+            }
         }
     }
 }
 
-@Composable
-fun AIAppScreen(viewModel: AIViewModel = viewModel()) {
-    var userText by remember { mutableStateOf("") }
-    var queryText by remember { mutableStateOf("") }
-    var result by remember { mutableStateOf("") }
+// You'll also need to create activity_main.xml in the layout directory:
+/*
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        TextField(
-            value = userText,
-            onValueChange = { userText = it },
-            label = { Text("Enter text to train") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Button(onClick = { viewModel.trainModel(userText) }) {
-            Text("Train")
-        }
-        TextField(
-            value = queryText,
-            onValueChange = { queryText = it },
-            label = { Text("Ask a question") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Button(onClick = { result = viewModel.queryModel(queryText) }) {
-            Text("Submit Query")
-        }
-        Text(
-            text = "Result: $result",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-        )
-    }
-}
+    <EditText
+        android:id="@+id/noteEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter your note" />
+
+    <Button
+        android:id="@+id/addNoteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Note" />
+
+    <TextView
+        android:id="@+id/notesTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Notes:" />
+</LinearLayout>
+*/
